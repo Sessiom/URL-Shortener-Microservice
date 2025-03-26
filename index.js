@@ -56,12 +56,12 @@ app.post('/api/shorturl', async (req, res) => {
   }
 
   // Check if the URL is valid
-  let validUrl;
-  try {
-    validUrl = new URL(url); // Validate URL format
-  } catch (e) {
-    return res.status(400).json({ error: 'invalid url' });
-  }
+  const validUrl = new URL(url);
+
+    // Ensure the protocol is either http or https
+    if (validUrl.protocol !== 'http:' && validUrl.protocol !== 'https:') {
+      return res.json({ error: 'invalid url' });
+    }
 
   const hostname = validUrl.hostname; // Extract the domain name
 
@@ -93,14 +93,13 @@ app.post('/api/shorturl', async (req, res) => {
 
 // GET endpoint for redirecting based on short URL
 app.get('/api/shorturl/:short', async (req, res) => {
-  const { short } = req.params;
+  const shortUrl = Number(req.params.short); // Ensure it's a number
 
-  const url = await Url.findOne({ short_url: short });
-  console.log(url)
+  const url = await Url.findOne({ short_url: shortUrl });
   if (url) {
     res.redirect(url.original_url);
   } else {
-    res.status(404).json({ error: 'Short URL not found' });
+    res.json({ error: 'Short URL not found' });
   }
 });
 
